@@ -7,7 +7,7 @@ class ProductManager {
         this.path = path;
     }
 
-    addProduct(title, description, price, thumbnail, code, stock){
+    async addProduct(title, description, price, thumbnail, code, stock){
         if (!title || !description || !price || !thumbnail || !code || !stock) {
             throw new Error('Todos los campos del producto son obligatorios');
         }
@@ -15,7 +15,6 @@ class ProductManager {
             throw new Error(`El código de ${title} (code: ${code}) ya existe. Prueba usando otro código`);
         }
         const newProduct = { 
-            id: this.nextId++,
             title, 
             description, 
             price, 
@@ -23,15 +22,33 @@ class ProductManager {
             code, 
             stock 
         };
+        await this.readJson();
+
+        this.nextId = this.products.length + 1;
+
+        newProduct.id = this.nextId;
+
         this.products.push(newProduct);
-        return newProduct;
+        try {
+            fs.writeFile(this.path, JSON.stringify(this.products));
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async readJson(){
+        try {
+            const data = await fs.promises.readFile(this.path, 'utf-8');
+            const products = JSON.parse(data)
+            this.products = products;
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     async getProducts() {
         try {
-            const data = await fs.promises.readFile(this.path, 'utf-8');
-            const products = data.split("\n");
-            this.products = products;
+            await this.readJson();
             return this.products;
         } catch (err) {
             console.error(err);
@@ -40,25 +57,12 @@ class ProductManager {
 
     async getProductById(productId) {
         try {
-            const data = await fs.promises.readFile(this.path, 'utf-8');
-            const products = data.split('\n');
-            const product = products.find(product => {
-                const productData = product.split(',');
-                return productData[0] === productId;
-            });
+            await this.readJson();
+            const product = this.products.find(product => product.id === productId);
             if(product) {
-                const productData = product.split(',');
-                return {
-                    id: productData[0],
-                    title: productData[1], 
-                    description: productData[2], 
-                    price: productData[3], 
-                    thumbnail: productData[4], 
-                    code: productData[5], 
-                    stock: productData[6] 
-                }
+                return product;
             } else {
-                console.log('No se encontró ningún producto con tal id');
+                console.log(`No se encontró ningún producto con el id ${productId}.`);
             }
         } catch (error) {
             console.log(error);
@@ -67,20 +71,12 @@ class ProductManager {
 
     async updateProduct(id, newProductData) {
         try {
-            const data = await fs.promises.readFile(this.path, 'utf-8');
-            const products = data.split('\n');
-            const productIndex = products.findIndex((product) => {
-                const productData = product.split(',');
-                return productData[0] === id;
-            });
+            await this.readJson();
+            const productIndex = this.products.findIndex((product) => product.id === id);
             if (productIndex !== -1) {
-                const oldProductData = products[productIndex].split(',');
-                const newProductDataArray = Object.values(newProductData);
-                const updatedProductData = oldProductData.map((value, index) =>
-                index === 0 ? value : newProductDataArray[index - 1]
-            );
-                products[productIndex] = updatedProductData.join(',');
-                await fs.promises.writeFile(this.path, products.join('\n'), 'utf-8');
+                const updatedProduct = { id, ...newProductData };
+                this.products[productIndex] = updatedProduct;
+                await fs.promises.writeFile(this.path, JSON.stringify(this.products));
                 console.log(`El producto con id ${id} ha sido actualizado.`);
             } else {
                 console.log(`No se encontró ningún producto con el id ${id}.`);
@@ -92,15 +88,11 @@ class ProductManager {
 
     async deleteProduct(id) {
         try {
-            const data = await fs.promises.readFile(this.path, 'utf-8');
-            const products = data.split('\n');
-            const productIndex = products.findIndex((product) => {
-            const productData = product.split(',');
-            return productData[0] === id;
-            });
+            await this.readJson();
+            const productIndex = this.products.findIndex((product) => product.id === id);
             if (productIndex !== -1) {
-                products.splice(productIndex, 1);
-                await fs.promises.writeFile(this.path, products.join('\n'), 'utf-8');
+                this.products.splice(productIndex, 1);
+                await fs.promises.writeFile(this.path, JSON.stringify(this.products));
                 console.log(`El producto con id ${id} ha sido eliminado.`);
             }else{
                 console.log(`No se encontró ningún producto con el id ${id}.`);
