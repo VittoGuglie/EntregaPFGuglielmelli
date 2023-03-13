@@ -1,26 +1,26 @@
 const fs = require('fs');
 
 class ProductManager {
-    constructor(path){
+    constructor(path) {
         this.products = [];
         this.nextId = 1;
         this.path = path;
     }
 
-    async addProduct(title, description, price, thumbnail, code, stock){
+    async addProduct(title, description, price, thumbnail, code, stock) {
         if (!title || !description || !price || !thumbnail || !code || !stock) {
             throw new Error('Todos los campos del producto son obligatorios');
         }
         if (this.products.some(prod => prod.code === code)) {
             throw new Error(`El código de ${title} (code: ${code}) ya existe. Prueba usando otro código`);
         }
-        const newProduct = { 
-            title, 
-            description, 
-            price, 
-            thumbnail, 
-            code, 
-            stock 
+        const newProduct = {
+            title,
+            description,
+            price,
+            thumbnail,
+            code,
+            stock
         };
         await this.readJson();
 
@@ -36,7 +36,7 @@ class ProductManager {
         }
     }
 
-    async readJson(){
+    async readJson() {
         try {
             const data = await fs.promises.readFile(this.path, 'utf-8');
             const products = JSON.parse(data)
@@ -59,7 +59,7 @@ class ProductManager {
         try {
             await this.readJson();
             const product = this.products.find(product => product.id === productId);
-            if(product) {
+            if (product) {
                 return product;
             } else {
                 console.log(`No se encontró ningún producto con el id ${productId}.`);
@@ -94,11 +94,21 @@ class ProductManager {
                 this.products.splice(productIndex, 1);
                 await fs.promises.writeFile(this.path, JSON.stringify(this.products));
                 console.log(`El producto con id ${id} ha sido eliminado.`);
-            }else{
+            } else {
                 console.log(`No se encontró ningún producto con el id ${id}.`);
             }
         } catch (error) {
             console.error(error);
+        }
+    }
+
+    async writeJson(products) {
+        try {
+            const json = JSON.stringify(products);
+            await fs.promises.writeFile(this.path, json);
+        } catch (error) {
+            console.log(error);
+            throw error;
         }
     }
 }
