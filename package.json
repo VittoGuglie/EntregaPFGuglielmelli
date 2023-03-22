@@ -1,13 +1,16 @@
-{"name": "preentregaguglielmelli",
-"version": "1.0.0",
-"description": "Proyecto generado para cumplir con los requisitos de los desafios entregables que darán lugar a la entrega de un Proyecto Final para la institución educativa Coderhouse",
-"main": "App.js",
-"scripts": {
-  "test": "echo \"Error: no test specified\" && exit 1"
-},
-"author": "Vittorio Guglielmelli",
-"license": "MIT",
-"dependencies": {
-    "express": "^4.18.2"
-  }
+{
+    "name": "preentregaguglielmelli",
+    "version": "1.0.0",
+    "description": "Proyecto generado para cumplir con los requisitos de los desafios entregables que darán lugar a la entrega de un Proyecto Final para la institución educativa Coderhouse",
+    "main": "App.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Vittorio Guglielmelli",
+    "license": "MIT",
+    "dependencies": {
+        "express": "^4.18.2",
+        "express-handlebars": "^7.0.2",
+        "socket.io": "^4.6.1"
+    }
 }

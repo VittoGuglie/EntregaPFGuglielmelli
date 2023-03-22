@@ -1,0 +1,29 @@
+<h1>Real Time Products:</h1>
+<ol id="product-list">
+    {{#each products}}
+    <li>
+        {{this.title}} - U$D{{this.price}}
+    </li>
+    {{/each}}
+</ol>
+
+<h3>Create a product:</h3>
+<form id="product-form">
+    <label for="name">Title:</label>
+    <input type="text" name="name" id="name" placeholder="Nombre del producto">
+
+    <label for="price">Precio:</label>
+    <input type="number" name="price" id="price" placeholder="Precio">
+
+    <button type="submit">Crear producto</button>
+</form>
+
+<h3>Delete a product:</h3>
+<form id="delete-form">
+    <label for="delete-id">Producto a eliminar</label>
+    <input type="name" name="delete-id" id="delete-id">
+    <button type="submit">Eliminar</button>
+</form>
+
+<script src="/socket/socket.io.js"></script>
+<script src="/js/index.js"></script>
