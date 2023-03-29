@@ -1,13 +1,17 @@
 const { Router } = require('express');
-const ProductManager = require('../../ProductManager.js');
 
 const router = Router();
+
+const ProductManager = require('../../ProductManager.js');
+const path = require('path');
+const productManager = new ProductManager(
+    path.join(__dirname, '../../files/products.json')
+);
 
 // Endpoint para obtener todos los productos o un limite de ellos:
 router.get('/', async (req, res) => {
     const limit = req.query.limit;
     try {
-        const productManager = new ProductManager('./files/products.json');
         await productManager.readJson();
         const products = productManager.products;
         if (limit) {
@@ -25,7 +29,6 @@ router.get('/', async (req, res) => {
 router.get('/:pid', async (req, res) => {
     const pid = req.params.pid;
     try {
-        const productManager = new ProductManager('./files/products.json');
         await productManager.readJson();
         const products = productManager.products;
         const product = products.find((product) => product.id == pid);
@@ -43,7 +46,6 @@ router.get('/:pid', async (req, res) => {
 // Endpoint para agregar un producto:
 router.post('/', async (req, res) => {
     try {
-        const productManager = new ProductManager('./files/products.json');
         await productManager.readJson();
         const products = productManager.products;
 
@@ -80,7 +82,6 @@ router.post('/', async (req, res) => {
 router.put('/:pid', async (req, res) => {
     const pid = req.params.pid;
     try {
-        const productManager = new ProductManager('./files/products.json');
         await productManager.readJson();
         const products = productManager.products;
 
@@ -115,7 +116,6 @@ router.put('/:pid', async (req, res) => {
 router.delete('/:pid', async (req, res) => {
     const pid = req.params.pid;
     try {
-        const productManager = new ProductManager('./files/products.json');
         await productManager.readJson();
         const products = productManager.products;
 

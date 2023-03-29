@@ -1,12 +1,14 @@
 const { Router } = require('express');
-const ProductManager = require('../../ProductManager.js');
+const ProductManager = require('../../ProductManager');
+const path = require('path');
 
 const router = Router();
+const productManager = new ProductManager(path.join(__dirname, '../../files/products.json'));
 
 router.get('/', async (req, res) => {
-    const productManager = new ProductManager('./files/products.json');
     await productManager.readJson();
     const products = productManager.products;
+
     res.render('realTimeProducts.handlebars', {
         products,
         title: 'Real Time Products'

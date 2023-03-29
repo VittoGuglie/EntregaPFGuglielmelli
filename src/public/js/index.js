@@ -4,19 +4,15 @@ const productList = document.getElementById('product-list');
 const productForm = document.getElementById('product-form');
 const nameInput = document.getElementById('name');
 const priceInput = document.getElementById('price');
+const deleteForm = document.getElementById('delete-form');
 
-fetch('/productos.json')
-    .then(response => response.json())
-    .then(data => {
-        products = data;
-    })
-    .catch(error => console.error(error));
-
+// Evento de agregar producto
 productForm.addEventListener('submit', event => {
     event.preventDefault();
+
     const name = nameInput.value;
     const price = priceInput.value;
-    const product = { name, price };
+    const product = { name, price, id: Date.now() };
 
     socket.emit('agregarProducto', product);
 
@@ -24,30 +20,26 @@ productForm.addEventListener('submit', event => {
     priceInput.value = '';
 });
 
-socket.on('actualizarLista', ({ product, status }) => {
+//Evento para actualizar la lista de productos
+socket.on('actualizarLista', ({ product, status, productId }) => {
+    console.log('product:', product);
+    console.log('status:', status);
+    console.log('productId:', productId);
+
     if (status === 1) {
-        const listItem = document.createElement('li');
-
-        listItem.textContent = `${product.name} - U$D${product.price}`;
-
-        listItem.setAttribute('data-product-id', product.id);
-
-        productList.appendChild(listItem);
+        if (product && product.id) {
+            const productLi = document.createElement('li');
+            productLi.setAttribute('id', product.id);
+            productLi.textContent = `${product.name} - U$D${product.price}`;
+            productList.appendChild(productLi);
+        } else {
+            console.error('El objeto de producto no tiene una propiedad "id".');
+        }
+    } else if (productId == product.id) {
+        const productLi = document.getElementById(productId);
+        socket.emit('eliminarProducto', productLi);
+        productLi.remove();
     } else {
         console.error('Ha ocurrido un error al agregar el producto.');
     }
-});
-
-socket.on('eliminarProducto', ({ id }) => {
-    const index = products.findIndex(producto => producto.id === id);
-    if (index !== -1) {
-        products.splice(index, 1);
-    }
-});
-
-socket.on('actualizarListaDeProductos', (products) => {
-    productList.innerHTML = products.map(product => `
-    <li data-product-id="${product.id}">
-        ${product.name} - U$D${product.price}
-    </li>`).join('');
 });

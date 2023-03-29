@@ -39,7 +39,7 @@ class ProductManager {
     async readJson() {
         try {
             const data = await fs.promises.readFile(this.path, 'utf-8');
-            const products = JSON.parse(data)
+            const products = JSON.parse(data);
             this.products = products;
         } catch (error) {
             console.log(error);

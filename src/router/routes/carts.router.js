@@ -3,7 +3,7 @@ const fs = require('fs');
 
 const router = Router();
 
-const CART_FILE = "./files/carrito.json";
+const CART_FILE = "../../files/carrito.json";
 
 let carts = [];
 
