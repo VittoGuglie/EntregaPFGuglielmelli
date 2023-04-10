@@ -2,7 +2,9 @@
     <h1>Lista de productos en tiempo real</h1>
     <ul id="product-list">
         {{#each products}}
-        <li class="product" id="product-{{this.id}}">{{this.title}} - U$D{{this.price}}</li>
+        {{#if this.status}}
+            <li class="product" id="product-{{this.id}}">{{this.title}} - U$D{{this.price}}</li>
+        {{/if}}
         {{/each}}
     </ul>
 </div>
@@ -16,18 +18,29 @@
         <label>Precio:</label>
         <input type="number" name="price" id="price">
 
+        <label>Code:</label>
+        <input type="text" name="code" id="code">
+
+        <label>Stock:</label>
+        <input type="number" name="stock" id="stock">
+
+        <label>Category:</label>
+        <input type="text" name="category" id="category">
+
+        <label>Description:</label>
+        <input type="text" name="description" id="description">
+
         <button type="submit">Agregar</button>
     </form>
 </div>
 
 <div>
     <h2>Eliminar producto</h2>
-    <form id="delete-form">
-        <div>
-            <label for="product-Id">ID:</label>
-            <input type="text" id="product-Id" name="product-Id" required>
-        </div>
-        <button type="submit">Eliminar</button>
+    <form id="delete-Form" method="DELETE">
+        <label for="productId">Id del producto:</label>
+        <input id="productId" name="productId" value="{{id}}">
+        
+        <button type="submit" id="deleteButton">Eliminar</button>
     </form>
 </div>
 
