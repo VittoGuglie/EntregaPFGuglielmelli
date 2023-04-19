@@ -3,12 +3,8 @@ const mongoose = require('mongoose');
 const collectionName = 'cart';
 
 const collectionSchema = new mongoose.Schema({
-    items: [
-        {
-            id: { type: String, required: true },
-            quantity: { type: Number, required: true }
-        }
-    ]
+    user,
+    message
 });
 
 const carts = mongoose.model(collectionName, collectionSchema);

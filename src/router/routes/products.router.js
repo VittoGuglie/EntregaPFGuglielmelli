@@ -1,12 +1,18 @@
 const { Router } = require('express');
+const uploader = require('../../utils/multer.utils');
+const ProductsDao = require('../../dao/products.dao');
 
 const router = Router();
 
-const ProductManager = require('../../ProductManager.js');
+const ProductManager = require('../../dao/ProductManager.dao.js');
+
 const path = require('path');
+const products = require('../../dao/models/Products.model');
 const productManager = new ProductManager(
     path.join(__dirname, '../../files/products.json')
 );
+
+const Products = new ProductsDao();
 
 // Endpoint para obtener todos los productos o un limite de ellos:
 router.get('/', async (req, res) => {
@@ -19,9 +25,22 @@ router.get('/', async (req, res) => {
         } else {
             res.json(products);
         }
+
+        const newProducts = await Products.insertMany(products);
+        res.json({ message: newProducts });
     } catch (error) {
         console.error(error);
         res.status(500).send('Error al obtener los productos');
+    }
+});
+
+// Endpoint para cargar productos con mongoDB
+router.get('/loadItemsFromDB', async (req, res) => {
+    try {
+        const products = await Products.find();
+        res.json({ message: products });
+    } catch (error) {
+        res.json({ error });
     }
 });
 
@@ -75,6 +94,28 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).send('Error al agregar el producto');
+    }
+});
+
+//Agregar un producto desde la db
+router.post('/addProduct', uploader.single('file'), async (req, res) => {
+    try {
+        const { title, description, price, code, stock, category } = req.body
+        
+        const newProductInfo = {
+            title,
+            description,
+            price,
+            code,
+            stock,
+            thumbnail: req.file.filename,
+            category,
+        }
+
+        const newProduct = await Products.create(newProductInfo)
+        res.json({ message: newProduct })
+    } catch (error) {
+        res.json({ error })
     }
 });
 
@@ -135,5 +176,11 @@ router.delete('/:pid', async (req, res) => {
         res.status(500).send('Error al eliminar el producto');
     }
 });
+
+// Eliminar productos con mongoDB
+router.delete('/deleteAll', async (req, res) => {
+    await Products.deleteAll()
+    res.json({ message: 'Delete all' })
+})
 
 module.exports = router;

@@ -26,12 +26,22 @@ const httpServer = app.listen(port, () => {
 
 const io = new Server(httpServer);
 
-let products = [];
+let messages = []; 
 
 io.on('connection', socket => {
-    console.log('Nuevo cliente conectado');
+    console.log(`Cliente conectado con id: ${socket.id}`);
 
     socket.on('agregarProducto', product => {
         io.emit('actualizarLista', { product, status: 1, productId: product.id });
     });
+
+    socket.on('newUser', user => {
+        socket.broadcast.emit('userConnected', user);
+        socket.emit('messageLogs', messages);
+    });
+
+    socket.on('message', data => {
+        messages.push(data);
+        io.emit('messageLogs', messages);
+    })
 });

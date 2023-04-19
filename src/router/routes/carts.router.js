@@ -1,9 +1,12 @@
 const { Router } = require('express');
 const fs = require('fs');
+const CartDAO = require('../../dao/carts.dao');
 
 const router = Router();
 
 const CART_FILE = "../../files/carrito.json";
+
+const cartDAO = new CartDAO();
 
 let carts = [];
 
@@ -52,8 +55,41 @@ router.post("/", async (req, res) => {
                 error: "Error al escribir en el archivo",
                 message: error.message,
             });
+    };
+});
+
+
+// Endpoint para generar un carrito desde la carts.dao
+router.post('/', async (req, res) => {
+    try {
+        const cart = await cartDAO.createCart(req.body);
+        res.status(201).json(cart);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
+// Endpoint para buscar un carrito específico por su id
+router.get('/:cartId', async (req, res) => {
+    try {
+        const cartId = req.params.cartId;
+        const cart = await cartDAO.findCartById(cartId);
+        res.status(200).json(cart);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+// Endpoint para agregar un nuevo ítem a un carrito específico
+router.put('/:cartId/items', async (req, res) => {
+    try {
+        const cartId = req.params.cartId;
+        const item = req.body;
+        const cart = await cartDAO.addItemToCart(cartId, item);
+        res.status(200).json(cart);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 // Endpoint para listar los productos de un carrito:
 router.get("/:cid", async (req, res) => {
