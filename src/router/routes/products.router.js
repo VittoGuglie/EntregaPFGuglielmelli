@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
 // Endpoint para cargar productos con mongoDB
 router.get('/loadItemsFromDB', async (req, res) => {
     try {
-        const products = await Products.find();
+        const products = await Products.findAll();
         res.json({ message: products });
     } catch (error) {
         res.json({ error });
@@ -100,7 +100,7 @@ router.post('/', async (req, res) => {
 //Agregar un producto desde la db
 router.post('/addProduct', uploader.single('file'), async (req, res) => {
     try {
-        const { title, description, price, code, stock, category } = req.body
+        const { title, description, price, code, stock, category } = req.body;
         
         const newProductInfo = {
             title,
@@ -110,12 +110,12 @@ router.post('/addProduct', uploader.single('file'), async (req, res) => {
             stock,
             thumbnail: req.file.filename,
             category,
-        }
+        };
 
-        const newProduct = await Products.create(newProductInfo)
-        res.json({ message: newProduct })
+        const newProduct = await Products.create(newProductInfo);
+        res.json({ message: newProduct });
     } catch (error) {
-        res.json({ error })
+        res.json({ error });
     }
 });
 
@@ -179,8 +179,8 @@ router.delete('/:pid', async (req, res) => {
 
 // Eliminar productos con mongoDB
 router.delete('/deleteAll', async (req, res) => {
-    await Products.deleteAll()
-    res.json({ message: 'Delete all' })
-})
+    await Products.deleteAll();
+    res.json({ message: 'Delete all' });
+});
 
 module.exports = router;
