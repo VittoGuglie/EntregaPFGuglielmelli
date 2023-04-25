@@ -4,7 +4,7 @@ class ProductManager {
     constructor(path) {
         this.products = [];
         this.nextId = 1;
-        this.path = path;
+        this.path = process.cwd() + `/src/files/${path}`;
     }
 
     async addProduct(title, description, price, thumbnail, code, stock) {
@@ -58,7 +58,7 @@ class ProductManager {
     async getProductById(productId) {
         try {
             await this.readJson();
-            const product = this.products.find(product => product.id === productId);
+            const product = this.products.find(product => product.id.toString() === productId);
             if (product) {
                 return product;
             } else {

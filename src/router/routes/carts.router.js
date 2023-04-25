@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const fs = require('fs');
 const CartDAO = require('../../dao/carts.dao');
+const { Schema } = require('mongoose');
 
 const router = Router();
 
@@ -14,7 +15,10 @@ const cartObj = {
     id: Number,
     products: [
         {
-            product: Number,
+            product: {
+                type: Schema.Types.ObjectId,
+                ref: 'Product',
+            },
             quantity: Number,
         },
     ],
@@ -95,13 +99,12 @@ router.put('/:cartId/items', async (req, res) => {
 router.get("/:cid", async (req, res) => {
     const cid = req.params.cid;
 
-    carts = await readCartsFile();
-
-    const cart = carts.find((c) => c.id === Number(cid));
-
-    if (!cart) return res.status(404).json({ error: "Oh Oh... Carrito no encontrado." });
-
-    res.json(cart.products);
+    try {
+        const cart = await cartDAO.findCartById(cid).populate("products.product");
+        res.json(cart.products);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Endpoint para agregar un producto al carrito:
@@ -130,6 +133,65 @@ router.post("/:cid/product/:pid", async (req, res) => {
     await fs.promises.writeFile(CART_FILE, JSON.stringify(carts));
 
     res.json(cart);
+});
+
+// Endpoint para eliminar un producto de un carrito específico
+router.delete('/:cid/products/:pid', async (req, res) => {
+    try {
+        const cartId = req.params.cid;
+        const productId = req.params.pid;
+        const cart = await cartDAO.deleteProductFromCart(cartId, productId);
+        res.status(200).json(cart);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Endpoint para actualizar el carrito con un arreglo de productos
+router.put('/:cid', async (req, res) => {
+    try {
+        const cartId = req.params.cid;
+        const products = req.body;
+        const cart = await cartDAO.updateCart(cartId, products);
+        res.status(200).json(cart);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Endpoint para actualizar la cantidad de un producto en un carrito específico
+router.put('/:cid/products/:pid', async (req, res) => {
+    try {
+        const cartId = req.params.cid;
+        const productId = req.params.pid;
+        const quantity = req.body.quantity;
+        const cart = await cartDAO.updateProductQuantity(cartId, productId, quantity);
+        res.status(200).json(cart);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Endpoint para eliminar todos los productos de un carrito específico
+router.delete('/:cid', async (req, res) => {
+    try {
+        const cartId = req.params.cid;
+        const cart = await cartDAO.deleteCart(cartId);
+        res.status(200).json(cart);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Endpoint para listar los productos de un carrito, incluyendo los detalles de cada producto
+router.get('/:cid/products', async (req, res) => {
+    try {
+        const cartId = req.params.cid;
+        const cart = await cartDAO.findCartById(cartId).populate('products.product');
+        res.status(200).json(cart.products);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 module.exports = router;

@@ -16,18 +16,45 @@ const Products = new ProductsDao();
 
 // Endpoint para obtener todos los productos o un limite de ellos:
 router.get('/', async (req, res) => {
-    const limit = req.query.limit;
     try {
         await productManager.readJson();
-        const products = productManager.products;
-        if (limit) {
-            res.json(products.slice(0, limit));
-        } else {
-            res.json(products);
+        let { limit = 10, page = 1, sort, query } = req.query;
+        let products = productManager.products;
+
+        // Filtrar por query
+        if (query) {
+            products = products.filter((product) => product.category === query);
         }
 
-        const newProducts = await Products.insertMany(products);
-        res.json({ message: newProducts });
+        // Ordenar por precio
+        if (sort) {
+            if (sort === 'asc') {
+                products.sort((a, b) => a.price - b.price);
+            } else if (sort === 'desc') {
+                products.sort((a, b) => b.price - a.price);
+            }
+        }
+
+        // Paginación
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+        const results = products.slice(startIndex, endIndex);
+
+        const totalPages = Math.ceil(products.length / limit);
+
+        const response = {
+            status: 'success',
+            payload: results,
+            totalPages: totalPages,
+            page: parseInt(page),
+            totalResults: products.length,
+            hasPrevPage: page > 1,
+            hasNextPage: page < totalPages,
+            prevLink: page > 1 ? `${req.baseUrl}?limit=${limit}&page=${page - 1}${query ? `&query=${query}` : ''}${sort ? `&sort=${sort}` : ''}` : null,
+            nextLink: page < totalPages ? `${req.baseUrl}?limit=${limit}&page=${page + 1}${query ? `&query=${query}` : ''}${sort ? `&sort=${sort}` : ''}` : null,
+        };
+
+        res.json(response);
     } catch (error) {
         console.error(error);
         res.status(500).send('Error al obtener los productos');
@@ -38,9 +65,9 @@ router.get('/', async (req, res) => {
 router.get('/loadItemsFromDB', async (req, res) => {
     try {
         const products = await Products.findAll();
-        res.json({ message: products });
+        res.json({ status: 'success', message: products });
     } catch (error) {
-        res.json({ error });
+        res.json({ status: 'error', error });
     }
 });
 
@@ -113,9 +140,9 @@ router.post('/addProduct', uploader.single('file'), async (req, res) => {
         };
 
         const newProduct = await Products.create(newProductInfo);
-        res.json({ message: newProduct });
+        res.json({ status: 'success', message: newProduct });
     } catch (error) {
-        res.json({ error });
+        res.json({ status: 'error', error });
     }
 });
 

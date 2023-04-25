@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
-const collectionName = 'cart';
+const collectionName = 'message';
 
 const collectionSchema = new mongoose.Schema({
     user,
     message
 });
 
-const carts = mongoose.model(collectionName, collectionSchema);
+const Messages = mongoose.model(collectionName, collectionSchema);
 
-module.exports = carts;
+module.exports = Messages;

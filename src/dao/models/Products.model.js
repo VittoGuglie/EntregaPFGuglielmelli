@@ -11,6 +11,6 @@ const collectionSchema = new mongoose.Schema({
     stock: Number,
 });
 
-const products = mongoose.model(collectionName, collectionSchema);
+const Products = mongoose.model(collectionName, collectionSchema);
 
-module.exports = products;
+module.exports = Products;
