@@ -1,26 +1,15 @@
 const { Router } = require('express');
-const Users = require('../../dao/models/Users.model');
+const passport = require('passport');
 
 const router = Router();
 
-router.post('/', async (req, res) => {
-    try {
-        const { first_name, last_name, email, age, password } = req.body;
-        const newUserInfo = {
-            first_name,
-            last_name,
-            email,
-            age,
-            password,
-        };
+router.post('/register', passport.authenticate('register', {failureRedirect: '/failregister'}), async (req, res) => {
+    res.send({status: 'success', message: 'Usuario registrado'});
+});
 
-        const user = await Users.create(newUserInfo);
-
-        res.status(201).json({ status: 'success', message: user });
-    } catch (error) {
-        console.log(error.message);
-        res.status(500).json({ status: 'error', error: 'Internal server error' });
-    }
+router.get('/failregister', async (req, res) => {
+    console.log('failed strategy');
+    res.send({error: 'Failed'});
 });
 
 module.exports = router;

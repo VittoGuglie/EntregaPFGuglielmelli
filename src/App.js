@@ -8,6 +8,10 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 
+const passport = require('passport');
+const initializePassport = require('./config/passport.config');
+
+const { dbAdmin, dbPassword, dbHost } = require('../src/config/db.config');
 
 const app = express();
 
@@ -20,13 +24,16 @@ app.use(cookieParser());
 
 app.use(session({
     store: MongoStore.create({
-        mongoUrl: 'mongodb+srv://Admin:<password>@cluster0.nvpusl3.mongodb.net/?retryWrites=true&w=majority',
+        mongoUrl: `mongodb+srv://${dbAdmin}:${dbPassword}@${dbHost}/?retryWrites=true&w=majority`,
         mongoOptions: { useNewUrlParser: true, useUnifiedTopology: true },
     }),
     secret: 'secret',
     resave: false,
     saveUninitialized: false
 }));
+initializePassport();
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.engine('handlebars', handlebars.engine());
 app.set('views', __dirname + '/views');
