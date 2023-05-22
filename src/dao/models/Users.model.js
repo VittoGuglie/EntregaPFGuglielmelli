@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
 const collectionName = 'user';
 
@@ -23,6 +24,15 @@ const collectionSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+    cart: {
+        type: Schema.Types.ObjectId,
+        ref: 'Cart'
+    },
+    role: {
+        type: String,
+        default: 'User',
+        enum: ['User', 'Admin']
     }
 });
 

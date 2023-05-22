@@ -1,15 +1,16 @@
-const { Router } = require('express');
 const passport = require('passport');
+const CustomRouter = require('../../classes/CustomRouter.class')
 
-const router = Router();
+class UsersRouter extends CustomRouter {
+    init() {
+        this.post('/register', ['PUBLIC'], passport.authenticate('register', { failureRedirect: '/failregister' }), async (req, res) => {
+            res.sendCreatedSuccess('Usuario registrado');
+        });
+        this.get('/failregister', ['PUBLIC'], async (req, res) => {
+            console.log('failed strategy');
+            res.sendUserError('Failed');
+        });
+    }
+}
 
-router.post('/register', passport.authenticate('register', {failureRedirect: '/failregister'}), async (req, res) => {
-    res.send({status: 'success', message: 'Usuario registrado'});
-});
-
-router.get('/failregister', async (req, res) => {
-    console.log('failed strategy');
-    res.send({error: 'Failed'});
-});
-
-module.exports = router;
+module.exports = UsersRouter;

@@ -5,8 +5,6 @@ const router = require('./router');
 const { port } = require('./config/app.config')
 const mongoConnect = require('../db/index');
 const cookieParser = require('cookie-parser');
-const session = require('express-session');
-const MongoStore = require('connect-mongo');
 
 const passport = require('passport');
 const initializePassport = require('./config/passport.config');
@@ -19,21 +17,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 app.use('/files', express.static(__dirname + '/files'));
-
 app.use(cookieParser());
-
-app.use(session({
-    store: MongoStore.create({
-        mongoUrl: `mongodb+srv://${dbAdmin}:${dbPassword}@${dbHost}/?retryWrites=true&w=majority`,
-        mongoOptions: { useNewUrlParser: true, useUnifiedTopology: true },
-    }),
-    secret: 'secret',
-    resave: false,
-    saveUninitialized: false
-}));
-initializePassport();
 app.use(passport.initialize());
-app.use(passport.session());
+
+initializePassport();
+
 
 app.engine('handlebars', handlebars.engine());
 app.set('views', __dirname + '/views');

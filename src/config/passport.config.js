@@ -3,8 +3,13 @@ const local = require('passport-local');
 const userService = require('../dao/models/Users.model');
 const { createHash, isValidPassword } = require('../utils/cryptPassword.utils');
 const GithubStrategy = require('passport-github2');
+const jwt = require('passport-jwt');
+const cookieExtractor = require('../utils/cookieExtractor.utils');
+const { SECRET_KEY } = require('../utils/jwt.utils');
 
 const localStrategy = local.Strategy;
+const JWTStrategy = jwt.Strategy;
+const ExtractJwt = jwt.ExtractJwt;
 
 const initializePassport = () => {
     passport.use('register', new localStrategy(
@@ -36,7 +41,7 @@ const initializePassport = () => {
     passport.use('login', new localStrategy({ usernameField: 'email' }, async (username, password, done) => {
         try {
             const user = await userService.findOne({ email: username });
-            if (user) {
+            if (!user) {
                 console.log('El usuario no existe.');
                 return done(null, false);
             }
@@ -75,6 +80,20 @@ const initializePassport = () => {
         }
     }));
 
+    passport.use('jwt', new JWTStrategy(
+        {
+            jwtFromRequest: jwt.ExtractJwt.fromExtractors([cookieExtractor]),
+            secretOrKey: SECRET_KEY,
+        },
+        async (jwt_payload, done) => {
+            try {
+                done(null, jwt_payload);
+            } catch (error) {
+                done(error);
+            }
+        }
+    ));
+
     passport.serializeUser((user, done) => {
         done(null, user._id);
     });
@@ -83,6 +102,6 @@ const initializePassport = () => {
         let user = await userService.findById(id);
         done(null, user);
     });
-}
+};
 
-export default initializePassport;
+module.exports = initializePassport;

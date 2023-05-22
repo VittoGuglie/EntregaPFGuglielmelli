@@ -1,64 +1,42 @@
-const { Router } = require('express');
+const CustomRouter = require('../../classes/CustomRouter.class');
+const { generateToken } = require('../../utils/jwt.utils');
 const Users = require('../../dao/models/Users.model');
-const { hashPassword } = require('../../utils/cryptPassword.utils');
 const passport = require('passport');
 
-const router = Router();
+class AuthRouter extends CustomRouter {
+    init() {
+        this.post('/login', ['PUBLIC'], passport.authenticate('jwt', { session: false }), async (req, res) => {
+            try {
+                const { email, password } = req.body;
 
-router.post('/', (passport.authenticate('login', { failureRedirect: '/auth/faillogin' }), async (req, res) => {
-    try {
-        if (!req.user)
-            return res
-                .status(401)
-                .json({ status: 'error', error: 'Usuario y contraseña no coinciden' })
+                const user = await Users.findOne({ email });
 
-        req.session.user = {
-            first_name: req.user.first_name,
-            last_name: req.user.last_name,
-            email: req.user.email,
-            age: req.user.age,
-        }
+                if (!user)
+                    return res
+                        .status(400)
+                        .json({ status: 'error', error: "User and password don't match" });
 
-        res.json({ status: 'success', message: 'Sesión iniciada' })
-    } catch (error) {
-        console.log(error.message);
-        res.status(500).json({ status: 'error', error: 'Internal Server Error' });
-    }
-})
-);
+                if (password !== user.password)
+                    return res
+                        .status(400)
+                        .json({ status: 'error', error: "User and password don't match" });
 
-router.patch('/forgotPassword', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const passwordEncrypted = hashPassword(password);
-        await Users.updateOne({ email }, { password: passwordEncrypted });
+                const access_token = generateToken({ email, role: user.role });
 
-        res.json({ message: 'Password updated' });
-    } catch (error) {
-        res.json({ error: error.message });
-    }
-})
+                res
+                    .cookie('authToken', access_token, {
+                        maxAge: 60*60*1000, 
+                        httpOnly: true,
+                    }).json({
+                        status: 'success',
+                        message: 'Session initialized',
+                    });
+            } catch (error) {
+                console.log(error);
+                res.status(500).json({ status: 'error', error: 'Internal server error' });
+            }
+        });
+    };
+};
 
-router.get('/logout', (req, res) => {
-    req.session.destroy(error => {
-        if (error) return res.json({ error });
-        res.redirect('/login');
-    });
-});
-
-router.get(
-    '/github',
-    passport.authenticate('github', { scope: ['user: email'] }),
-    async (req, res) => { }
-);
-
-router.get(
-    '/githubcallback',
-    passport.authenticate('github', { failureRedirect: '/login' }),
-    async (req, res) => {
-        req.session.user = req.user;
-        res.redirect('/');
-    }
-);
-
-module.exports = router;
+module.exports = AuthRouter;
