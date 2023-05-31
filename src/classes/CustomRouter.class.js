@@ -3,11 +3,11 @@ const { verifyToken } = require('../utils/jwt.utils');
 
 class CustomRouter {
     constructor() {
-        this.router = Router()
+        this.router = Router(),
         this.init()
     }
 
-    init() { }
+    init() {  }
 
     getRouter() {
         return this.router;
