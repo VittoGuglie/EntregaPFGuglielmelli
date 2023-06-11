@@ -19,6 +19,7 @@
         "jsonwebtoken": "^9.0.0",
         "mongoose": "^7.0.3",
         "multer": "^1.4.5-lts.1",
+        "nodemailer": "^6.9.3",
         "paginate": "^0.2.0",
         "paginate-info": "^1.0.4",
         "passport": "^0.6.0",
@@ -26,6 +27,8 @@
         "passport-jwt": "^4.0.1",
         "passport-local": "^1.0.0",
         "session-file-store": "^1.5.0",
-        "socket.io": "^4.6.1"
+        "socket.io": "^4.6.1",
+        "twilio": "^4.11.2",
+        "uuid": "^9.0.0"
     }
 }

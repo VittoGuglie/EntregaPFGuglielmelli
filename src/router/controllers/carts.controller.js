@@ -1,13 +1,16 @@
 const { Router } = require('express');
 const fs = require('fs');
 const CartDAO = require('../../dao/carts.dao');
+const ProductDAO = require('../../dao/products.dao');
 const { Schema } = require('mongoose');
-
+const Ticket = require('../../dao/models/Ticket.model');
+const { generateUniqueCode, calculateTotalAmount } = require('../../utils/carts.utils');
 const router = Router();
 
 const CART_FILE = "../../files/carrito.json";
 
 const cartDAO = new CartDAO();
+const productDAO = new ProductDAO();
 
 let carts = [];
 
@@ -189,6 +192,52 @@ router.get('/:cid/products', async (req, res) => {
         const cartId = req.params.cid;
         const cart = await cartDAO.findCartById(cartId).populate('products.product');
         res.status(200).json(cart.products);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Ruta para finalizar la compra del carrito
+router.post("/:cid/purchase", async (req, res) => {
+    const cartId = req.params.cid;
+
+    try {
+        const cart = await cartDAO.findCartById(cartId);
+
+        const productsToPurchase = [];
+
+        for (const item of cart.items) {
+            const product = await productDAO.findProductById(item.id);
+
+            if (product.stock >= item.quantity) {
+                product.stock -= item.quantity;
+                await productDAO.updateProduct(product);
+
+                productsToPurchase.push({
+                    product: product._id,
+                    quantity: item.quantity
+                });
+            } else {
+                console.log(`No hay suficiente stock para el producto: ${product.name}`);
+            }
+        }
+
+        // Crear el ticket de compra
+        const ticket = new Ticket({
+            code: generateUniqueCode(),
+            purchase_datetime: new Date(),
+            amount: calculateTotalAmount(productsToPurchase), 
+            purchaser: req.user.email 
+        });
+
+        // Guardar el ticket en la base de datos
+        await ticket.save();
+
+        // Vaciar el carrito
+        cart.items = [];
+        await cart.save();
+
+        res.status(200).json({ message: "Compra realizada con éxito", ticket });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
