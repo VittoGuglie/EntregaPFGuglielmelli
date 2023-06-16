@@ -3,7 +3,7 @@ const fs = require('fs');
 const CartDAO = require('../../dao/carts.dao');
 const ProductDAO = require('../../dao/products.dao');
 const { Schema } = require('mongoose');
-const Ticket = require('../../dao/models/Ticket.model');
+const TicketService = require('../../services/tickets.services');
 const { generateUniqueCode, calculateTotalAmount } = require('../../utils/carts.utils');
 const router = Router();
 
@@ -199,47 +199,56 @@ router.get('/:cid/products', async (req, res) => {
 
 // Ruta para finalizar la compra del carrito
 router.post("/:cid/purchase", async (req, res) => {
-    const cartId = req.params.cid;
+    const cid = req.params.cid;
 
-    try {
-        const cart = await cartDAO.findCartById(cartId);
+    // Obtener el carrito y sus productos
+    const cart = await cartDAO.findCartById(cid).populate('products.product');
+    const productsToPurchase = cart.products;
 
-        const productsToPurchase = [];
+    // Verificar el stock de cada producto y procesar la compra
+    const failedProducts = [];
+    for (const productToPurchase of productsToPurchase) {
+        const productId = productToPurchase.product.id;
+        const quantity = productToPurchase.quantity;
 
-        for (const item of cart.items) {
-            const product = await productDAO.findProductById(item.id);
-
-            if (product.stock >= item.quantity) {
-                product.stock -= item.quantity;
-                await productDAO.updateProduct(product);
-
-                productsToPurchase.push({
-                    product: product._id,
-                    quantity: item.quantity
-                });
+        // Verificar el stock del producto
+        const product = await Product.findById(productId);
+        if (product) {
+            if (product.stock >= quantity) {
+                // Restar el stock del producto y continuar con la compra
+                product.stock -= quantity;
+                await product.save();
             } else {
-                console.log(`No hay suficiente stock para el producto: ${product.name}`);
+                // Agregar el producto al arreglo de productos no procesados
+                failedProducts.push(productId);
             }
         }
+    }
 
-        // Crear el ticket de compra
-        const ticket = new Ticket({
-            code: generateUniqueCode(),
-            purchase_datetime: new Date(),
-            amount: calculateTotalAmount(productsToPurchase), 
-            purchaser: req.user.email 
-        });
+    // Crear el ticket con los datos de la compra
+    const ticketData = {
+        code: generateUniqueCode(),
+        purchase_datetime: new Date(),
+        amount: calculateTotalAmount(productsToPurchase),
+        purchaser: req.user.email,
+    };
 
-        // Guardar el ticket en la base de datos
-        await ticket.save();
+    // Guardar el ticket en la base de datos
+    const ticket = await TicketService.createTicket(ticketData);
 
-        // Vaciar el carrito
-        cart.items = [];
-        await cart.save();
+    // Actualizar el carrito con los productos no procesados
+    cart.products = productsToPurchase.filter(
+        (product) => !failedProducts.includes(product.product.id)
+    );
+    await cart.save();
 
-        res.status(200).json({ message: "Compra realizada con éxito", ticket });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    // Devolver la respuesta al cliente
+    if (failedProducts.length > 0) {
+        // Si hay productos no procesados, devolver el arreglo de IDs
+        res.status(400).json({ failedProducts });
+    } else {
+        // Si todos los productos se procesaron correctamente, devolver el ticket
+        res.status(200).json({ ticket });
     }
 });
 

@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const jwt = require('passport-jwt');
-const { SECRET_KEY } = require('../utils/jwt.utils');
+const { SECRET_KEY } = require('../../utils/jwt.utils');
 
 const router = Router();
 
