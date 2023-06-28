@@ -5,6 +5,7 @@ const router = require('./router');
 const { port } = require('./config/app.config')
 const mongoConnect = require('../db/index');
 const cookieParser = require('cookie-parser');
+const { faker } = require('@faker-js/faker');
 
 const passport = require('passport');
 const initializePassport = require('./config/passport.config');
@@ -30,6 +31,15 @@ app.set('view engine', 'handlebars');
 router(app);
 
 mongoConnect();
+
+//Endpoint de prueba de creacion de usuarios con las variables asignadas:
+app.get('/api/test/user', (req, res) => {
+    let first_name = faker.name.firstName();
+    let last_name = faker.name.lastName();
+    let email = faker.internet.email();
+    let password = faker.internet.password();
+    res.send({ first_name, last_name, email, password });
+});
 
 const httpServer = app.listen(port, () => {
     console.log(`The server is listening at port ${port}`);
