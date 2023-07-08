@@ -6,6 +6,7 @@ const { port } = require('./config/app.config')
 const mongoConnect = require('../db/index');
 const cookieParser = require('cookie-parser');
 const { faker } = require('@faker-js/faker');
+const { getLogger } = require('./utils/logger.utils');
 
 const passport = require('passport');
 const initializePassport = require('./config/passport.config');
@@ -40,6 +41,19 @@ app.get('/api/test/user', (req, res) => {
     let password = faker.internet.password();
     res.send({ first_name, last_name, email, password });
 });
+//Endpoint de prueba 
+app.get('/loggerTest', (req, res) => {
+    const logger = getLogger(process.env.NODE_ENV);
+
+    logger.debug('Mensaje de depuración');
+    logger.http('Mensaje de solicitud HTTP');
+    logger.info('Mensaje de información');
+    logger.warning('Mensaje de advertencia');
+    logger.error('Mensaje de error');
+    logger.fatal('Mensaje fatal');
+
+    res.send('Prueba de logs realizada');
+});
 
 const httpServer = app.listen(port, () => {
     console.log(`The server is listening at port ${port}`);
@@ -47,7 +61,7 @@ const httpServer = app.listen(port, () => {
 
 const io = new Server(httpServer);
 
-let messages = []; 
+let messages = [];
 
 io.on('connection', socket => {
     console.log(`Cliente conectado con id: ${socket.id}`);

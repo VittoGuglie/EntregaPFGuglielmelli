@@ -1,5 +1,6 @@
 const EntityDAO = require('../dao/mongo/Entity.dao.js');
 const message = require('../repositories');
+const User = require('../dao/models/Users.model.js');
 
 const Users = new EntityDAO('Users');
 
@@ -23,7 +24,24 @@ const createUser = async newUserInfo => {
     }
 }
 
+const updateUserRole = async (userId, role) => {
+    try {
+        const usuario = await User.findById(userId);
+
+        if (!usuario) {
+            throw new Error('Usuario no encontrado');
+        }
+
+        usuario.role = role;
+
+        await usuario.save();
+    } catch (error) {
+        throw error;
+    }
+};
+
 module.exports = {
     getAll,
     createUser,
+    updateUserRole,
 }

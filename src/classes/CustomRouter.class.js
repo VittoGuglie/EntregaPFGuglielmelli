@@ -40,6 +40,15 @@ class CustomRouter {
         )
     }
 
+    patch(path, policies, ...callbacks) {
+        this.router.patch(
+            path,
+            this.handlePolicies(policies),
+            this.generateCustomResponses,
+            this.applyCallbacks(callbacks)
+        )
+    }
+
     applyCallbacks(callbacks) {
         return callbacks.map(callback => async (...params) => {
             try {

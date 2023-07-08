@@ -1,13 +1,14 @@
 const { Router } = require('express');
 const uploader = require('../../utils/multer.utils');
 const ProductsDao = require('../../dao/products.dao');
+const authorization = require('../../middlewares/authorization.middleware');
+const Product = require('../../dao/models/Products.model');
 
 const router = Router();
 
 const ProductManager = require('../../dao/ProductManager.dao.js');
 
 const path = require('path');
-const products = require('../../dao/models/Products.model');
 const productManager = new ProductManager(
     path.join(__dirname, '../../files/products.json')
 );
@@ -128,7 +129,7 @@ router.post('/', async (req, res) => {
 router.post('/addProduct', uploader.single('file'), async (req, res) => {
     try {
         const { title, description, price, code, stock, category } = req.body;
-        
+
         const newProductInfo = {
             title,
             description,
@@ -208,6 +209,106 @@ router.delete('/:pid', async (req, res) => {
 router.delete('/deleteAll', async (req, res) => {
     await Products.deleteAll();
     res.json({ message: 'Delete all' });
+});
+
+// Endpoint para agregar un producto siendo premium:
+router.post('/', [authorization('premium')], async (req, res) => {
+    try {
+        const { title, description, code, price, stock, category, thumbnails } = req.body;
+
+        if (!title || !description || !code || !price || !stock || !category) {
+            return res.status(400).send('Oops! Faltan campos obligatorios');
+        }
+
+        // verificacion del role premium:
+        const userRole = req.user.role;
+        if (userRole !== 'premium') {
+            return res.status(403).send('No tienes permiso para crear productos');
+        }
+
+        const newProduct = {
+            title,
+            description,
+            code,
+            price,
+            status: true,
+            stock,
+            category,
+            thumbnails: thumbnails || [],
+        };
+
+        const createdProduct = await Products.create(newProduct);
+
+        res.json(createdProduct);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error al agregar el producto');
+    }
+});
+
+// Endpoint para actualizar un producto siendo owner:
+router.put('/:productId', [authorization(['premium', 'admin'])], async (req, res) => {
+    const productId = req.params.productId;
+    const updates = req.body;
+
+    try {
+        const product = await Product.findById(productId);
+
+        if (!product) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+
+        // Verificar los permisos de modificación
+        if (req.user.role === 'premium') {
+            if (product.owner.toString() !== req.user._id.toString()) {
+                return res.status(403).json({ error: 'No tienes permiso para modificar este producto' });
+            }
+        } else if (req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'No tienes permiso para modificar productos' });
+        }
+
+        Object.assign(product, updates);
+
+        const updatedProduct = await product.save();
+
+        res.json(updatedProduct);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Endpoint para eliminar un producto (solo si el usuario es el propietario)
+router.delete('/:productId', [authorization(['premium', 'admin'])], async (req, res) => {
+    const productId = req.params.productId;
+    const userId = req.user._id;
+
+    try {
+        const product = await Product.findById(productId);
+
+        if (!product) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+
+        // Verificar los permisos de eliminación
+        if (req.user.role === 'premium') {
+            // Usuario premium solo puede eliminar sus propios productos
+            if (product.owner.toString() !== userId.toString()) {
+                return res.status(403).json({ error: 'No tienes permiso para eliminar este producto' });
+            }
+        } else if (req.user.role !== 'admin') {
+            // Otros roles no tienen permisos de eliminación
+            return res.status(403).json({ error: 'No tienes permiso para eliminar productos' });
+        }
+
+        // Eliminar el producto
+        await Product.findByIdAndDelete(productId);
+
+        res.json({ message: 'Producto eliminado exitosamente' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
 });
 
 module.exports = router;

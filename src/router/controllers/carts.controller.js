@@ -5,6 +5,10 @@ const ProductDAO = require('../../dao/products.dao');
 const { Schema } = require('mongoose');
 const TicketService = require('../../services/tickets.services');
 const { generateUniqueCode, calculateTotalAmount } = require('../../utils/carts.utils');
+
+const authorization = require('../../middlewares/authorization.middleware');
+const Product = require('../../dao/models/Products.model');
+
 const router = Router();
 
 const CART_FILE = "../../files/carrito.json";
@@ -111,18 +115,27 @@ router.get("/:cid", async (req, res) => {
 });
 
 // Endpoint para agregar un producto al carrito:
-router.post("/:cid/product/:pid", async (req, res) => {
+router.post("/:cid/product/:pid", [authorization(['premium'])], async (req, res) => {
     const cid = req.params.cid;
+    const pid = req.params.pid;
+    const userId = req.user._id;
+
+    // Verificar si el producto pertenece al usuario actual (solo para usuarios premium)
+    if (req.user.role === 'premium') {
+        const product = await Product.findById(pid);
+
+        if (product.owner === req.user.email) {
+            return res.status(403).json({ error: 'No puedes agregar un producto que te pertenece al carrito' });
+        }
+    }
 
     carts = await readCartsFile();
 
-    const cart = carts.find((c) => c.id === Number(cid
-    ));
+    const cart = carts.find((c) => c.id === Number(cid));
 
     if (!cart)
         return res.status(404).json({ error: "Oh Oh... Carrito no encontrado." });
 
-    const pid = req.params.pid;
     const productIndex = cart.products.findIndex(
         (product) => product.id === Number(pid)
     );

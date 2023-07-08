@@ -8,8 +8,9 @@ const UsersRouter = require('./controllers/users.controller');
 const viewsUsersController = require('./controllers/viewsUsers.controller');
 const currentController = require('./controllers/current.controller');
 const mockingproductsController = require('./controllers/mockingproducts.controller');
-const sessionsRouter = require('./SessionsRoutes/sessions.router');
+const sessionsRouter = require('./routes/sessions.router');
 const loggerTestController = require('./controllers/logger.controller');
+const passwordRouter = require('./routes/password.router');
 
 const usersRouter = new UsersRouter();
 const authRouter = new AuthRouter();
@@ -27,6 +28,7 @@ const router = app => {
     app.use('/mockingproducts', mockingproductsController);
     app.use('/api/sessions', sessionsRouter);
     app.use('/loggerTest', loggerTestController);
+    app.use('/reset-password', passwordRouter);
     app.use('*', (req, res) => {
         res.status(404).json({ error: 'Ooops Page not found' })
     });

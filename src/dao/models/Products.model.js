@@ -9,6 +9,11 @@ const collectionSchema = new mongoose.Schema({
     code: String,
     thumbnail: String,
     stock: Number,
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: 'Admin',
+    }
 });
 
 const Products = mongoose.model(collectionName, collectionSchema);
