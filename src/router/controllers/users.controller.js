@@ -54,8 +54,8 @@ class UsersRouter extends CustomRouter {
 
         this.patch('/premium/:uid', [authorization('admin')], async (req, res) => {
             const { uid } = req.params;
+            console.log(uid);
             try {
-
                 const user = await User.findById(uid);
                 if (!user) {
                     return res.status(404).json({ error: 'Usuario no encontrado' });

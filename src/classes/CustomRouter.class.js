@@ -4,13 +4,31 @@ const { verifyToken } = require('../utils/jwt.utils');
 class CustomRouter {
     constructor() {
         this.router = Router(),
-        this.init()
+            this.init()
     }
 
-    init() {  }
+    init() { }
 
     getRouter() {
         return this.router;
+    }
+
+    handleRoute(path, method, policies, ...callbacks) {
+        return new Promise((resolve, reject) => {
+            method = method.toLowerCase();
+            const httpMethod = this.router[method];
+            if (!httpMethod) {
+                throw new Error(`Invalid HTTP method: ${method}`);
+            }
+    
+            httpMethod.call(
+                this.router,
+                path,
+                this.handlePolicies(policies),
+                this.generateCustomResponses,
+                this.applyCallbacks(callbacks)
+            );
+        });
     }
 
     get(path, policies, ...callbacks) {

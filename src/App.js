@@ -1,4 +1,5 @@
 const express = require('express');
+const session = require('express-session');
 const handlebars = require('express-handlebars');
 const { Server } = require('socket.io')
 const router = require('./router');
@@ -7,6 +8,7 @@ const mongoConnect = require('../db/index');
 const cookieParser = require('cookie-parser');
 const { faker } = require('@faker-js/faker');
 const { getLogger } = require('./utils/logger.utils');
+const bodyParser = require('body-parser');
 
 const passport = require('passport');
 const initializePassport = require('./config/passport.config');
@@ -21,6 +23,8 @@ app.use(express.static(__dirname + '/public'));
 app.use('/files', express.static(__dirname + '/files'));
 app.use(cookieParser());
 app.use(passport.initialize());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 initializePassport();
 

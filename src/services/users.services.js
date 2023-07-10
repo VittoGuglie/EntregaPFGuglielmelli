@@ -10,7 +10,7 @@ const getAll = async () => {
     } catch (error) {
         throw error;
     }
-}
+};
 
 const createUser = async newUserInfo => {
     try {
@@ -18,11 +18,11 @@ const createUser = async newUserInfo => {
 
         await message.send(newUserInfo);
 
-        return newUser
+        return newUser;
     } catch (error) {
         throw error;
     }
-}
+};
 
 const updateUserRole = async (userId, role) => {
     try {
@@ -43,5 +43,5 @@ const updateUserRole = async (userId, role) => {
 module.exports = {
     getAll,
     createUser,
-    updateUserRole,
-}
+    updateUserRole
+};
