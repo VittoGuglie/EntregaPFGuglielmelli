@@ -6,7 +6,6 @@ const router = require('./router');
 const { port } = require('./config/app.config')
 const mongoConnect = require('../db/index');
 const cookieParser = require('cookie-parser');
-const { faker } = require('@faker-js/faker');
 const { getLogger } = require('./utils/logger.utils');
 const bodyParser = require('body-parser');
 
@@ -14,8 +13,15 @@ const passport = require('passport');
 const initializePassport = require('./config/passport.config');
 
 const { dbAdmin, dbPassword, dbHost } = require('../src/config/db.config');
+const { secret_key } = require('./config/app.config');
 
 const app = express();
+
+app.use(session({
+    secret: secret_key,
+    resave: false,
+    saveUninitialized: false
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -29,7 +35,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 initializePassport();
 
 
-app.engine('handlebars', handlebars.engine());
+app.engine('handlebars', handlebars.engine);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'handlebars');
 
@@ -37,14 +43,6 @@ router(app);
 
 mongoConnect();
 
-//Endpoint de prueba de creacion de usuarios con las variables asignadas:
-app.get('/api/test/user', (req, res) => {
-    let first_name = faker.name.firstName();
-    let last_name = faker.name.lastName();
-    let email = faker.internet.email();
-    let password = faker.internet.password();
-    res.send({ first_name, last_name, email, password });
-});
 //Endpoint de prueba 
 app.get('/loggerTest', (req, res) => {
     const logger = getLogger(process.env.NODE_ENV);

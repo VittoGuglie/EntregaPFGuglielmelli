@@ -3,17 +3,16 @@ const local = require('passport-local');
 const userService = require('../dao/models/Users.model');
 const { createHash, isValidPassword } = require('../utils/cryptPassword.utils');
 const GithubStrategy = require('passport-github2');
-const jwt = require('passport-jwt');
+const { generateToken, verifyToken } = require('../utils/jwt.utils');
+const { secret_key } = require('../config/app.config');
 const cookieExtractor = require('../utils/cookieExtractor.utils');
-const { SECRET_KEY } = require('../utils/jwt.utils');
-
+const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 const localStrategy = local.Strategy;
-const JWTStrategy = jwt.Strategy;
-const ExtractJwt = jwt.ExtractJwt;
 
 const initializePassport = () => {
     passport.use('register', new localStrategy(
-        { passReqToCallback: true, usernameField: 'email' }, async (req, username, password, done) => {
+        { passReqToCallback: true, usernameField: 'email' },
+        async (req, username, password, done) => {
             const { first_name, last_name, email, age } = req.body;
             try {
                 let user = await userService.findOne({ email: username });
@@ -28,7 +27,7 @@ const initializePassport = () => {
                     email,
                     age,
                     password: createHash(password),
-                }
+                };
 
                 let result = await userService.create(newUser);
                 return done(null, result);
@@ -38,52 +37,56 @@ const initializePassport = () => {
         }
     ));
 
-    passport.use('login', new localStrategy({ usernameField: 'email' }, async (username, password, done) => {
-        try {
-            const user = await userService.findOne({ email: username });
-            if (!user) {
-                console.log('El usuario no existe.');
-                return done(null, false);
-            }
-            if (!isValidPassword(user, password)) return done(null, false);
+    passport.use('login', new localStrategy({ usernameField: 'email' },
+        async (username, password, done) => {
+            try {
+                const user = await userService.findOne({ email: username });
+                if (!user) {
+                    console.log('El usuario no existe.');
+                    return done(null, false);
+                }
+                if (!isValidPassword(user, password)) return done(null, false);
 
-            return done(null, user);
-        } catch (error) {
-            return done(error);
+                return done(null, user);
+            } catch (error) {
+                return done(error);
+            }
         }
-    }));
+    ));
 
     passport.use('github', new GithubStrategy({
         clientID: 'Iv1.59174e6ff11cf59e',
         clientSecret: 'b16f0d0881dc031b280bd837521ebfe5e9de251a',
         callbackURL: 'http://localhost:8080/auth/githubcallback'
-    }, async (accessToken, refreshToken, profile, done) => {
-        try {
-            console.log(profile);
-            const user = await userService.findOne({ email: profile._json.email });
+    },
+        async (accessToken, refreshToken, profile, done) => {
+            try {
+                console.log(profile);
+                const user = await userService.findOne({ email: profile._json.email });
 
-            if (!user) {
-                const newUserInfo = {
-                    first_name: profile._json.name,
-                    last_name: '',
-                    age: 18,
-                    email: profile._json.email,
-                    password: '',
+                if (!user) {
+                    const newUserInfo = {
+                        first_name: profile._json.name,
+                        last_name: '',
+                        age: 18,
+                        email: profile._json.email,
+                        password: '',
+                    };
+                    const newUser = await userService.create(newUserInfo);
+                    return done(null, newUser);
                 }
-                const newUser = await userService.create(newUserInfo);
-                return done(null, newUser);
+
+                done(null, user);
+            } catch (error) {
+                return done(error);
             }
-
-            done(null, user);
-        } catch (error) {
-            return done(error);
         }
-    }));
+    ));
 
-    passport.use('jwt', new JWTStrategy(
+    passport.use('jwt', new JwtStrategy(
         {
-            jwtFromRequest: jwt.ExtractJwt.fromExtractors([cookieExtractor]),
-            secretOrKey: SECRET_KEY,
+            jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
+            secretOrKey: secret_key,
         },
         async (jwt_payload, done) => {
             try {

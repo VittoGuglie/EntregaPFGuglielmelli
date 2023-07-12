@@ -1,5 +1,5 @@
 const EntityDAO = require('../dao/mongo/Entity.dao.js');
-const message = require('../repositories');
+const message = require('../repositories/message.repository.js');
 const User = require('../dao/models/Users.model.js');
 
 const Users = new EntityDAO('Users');

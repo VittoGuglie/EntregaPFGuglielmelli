@@ -93,7 +93,7 @@ class CustomRouter {
 
     handlePolicies(policies) {
         return (req, res, next) => {
-            if (policies.includes('PUBLIC')) return next();
+            if (Array.isArray(policies) && policies.includes('PUBLIC')) return next();
 
             const authHeaders = req.headers.authorization;
             if (!authHeaders)

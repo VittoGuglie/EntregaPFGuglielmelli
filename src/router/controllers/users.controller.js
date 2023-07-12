@@ -3,14 +3,23 @@ const CustomRouter = require('../../classes/CustomRouter.class');
 const UserDTO = require('../../DTOs/users.dto');
 const { createUser, getAll, updateUserRole } = require('../../services/users.services');
 const authorization = require('../../middlewares/authorization.middleware');
+const publicAccess = require('../../middlewares/publicAccess.middleware');
+const privateAccess = require('../../middlewares/privateAccess.middleware');
 const User = require('../../dao/models/Users.model');
+const generateUsers = require('../../utils/mock.utils')
 
 class UsersRouter extends CustomRouter {
     init() {
+        // Ruta publica accesible para todos:
+        this.get('/', publicAccess, (req, res) => {
+            const { users } = req.query;
+            const userMock = generateUsers(users);
+            res.json({ message: userMock });
+        });
+
         this.post(
             '/register',
             ['PUBLIC'],
-            passport.authenticate('register', { failureRedirect: '/failregister' }),
             async (req, res) => {
                 try {
                     const newUserInfo = new UserDTO(req.body);
@@ -23,12 +32,7 @@ class UsersRouter extends CustomRouter {
             }
         );
 
-        this.get('/failregister', ['PUBLIC'], async (req, res) => {
-            console.log('failed strategy');
-            res.sendUserError('Failed');
-        });
-
-        this.get('/', [authorization('admin')], async (req, res) => {
+        this.get('/getUsersForAdmin', privateAccess, authorization(['admin']), async (req, res) => {
             try {
                 const users = await getAll();
                 res.json({ message: users });
@@ -38,21 +42,21 @@ class UsersRouter extends CustomRouter {
             }
         });
 
-        this.patch('/premium/:userId', [authorization('admin')], async (req, res) => {
-            try {
-                const { userId } = req.params;
-                const { role } = req.body;
+        // this.patch('/premium/:userId', [authorization('admin')], async (req, res) => {
+        //     try {
+        //         const { userId } = req.params;
+        //         const { role } = req.body;
 
-                await updateUserRole(userId, role);
+        //         await updateUserRole(userId, role);
 
-                res.json({ message: 'Rol de usuario actualizado correctamente' });
-            } catch (error) {
-                console.log(error);
-                res.status(500).json({ status: 'error', message: 'Error interno del servidor' });
-            }
-        });
+        //         res.json({ message: 'Rol de usuario actualizado correctamente' });
+        //     } catch (error) {
+        //         console.log(error);
+        //         res.status(500).json({ status: 'error', message: 'Error interno del servidor' });
+        //     }
+        // });
 
-        this.patch('/premium/:uid', [authorization('admin')], async (req, res) => {
+        this.patch('/premium/:uid', privateAccess, authorization(['admin']), async (req, res) => {
             const { uid } = req.params;
             console.log(uid);
             try {

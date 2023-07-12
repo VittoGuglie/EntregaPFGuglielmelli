@@ -5,10 +5,12 @@ const passport = require('passport');
 
 class AuthRouter extends CustomRouter {
     init() {
-        this.post('/login', ['PUBLIC'], passport.authenticate('jwt', { session: false }), async (req, res) => {
+        this.post('/login', ['PUBLIC'], async (req, res) => {
             try {
                 const { email, password } = req.body;
-
+                console.log(email);
+                console.log(password);
+                
                 const user = await Users.findOne({ email });
 
                 if (!user)
