@@ -8,6 +8,8 @@ const mongoConnect = require('../db/index');
 const cookieParser = require('cookie-parser');
 const { getLogger } = require('./utils/logger.utils');
 const bodyParser = require('body-parser');
+const authToken = require('./middlewares/authorization.middleware');
+const authorization = require('./middlewares/authorization.middleware');
 
 const passport = require('passport');
 const initializePassport = require('./config/passport.config');
@@ -31,6 +33,9 @@ app.use(cookieParser());
 app.use(passport.initialize());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(authToken);
+// app.use(authorization);
+
 
 initializePassport();
 

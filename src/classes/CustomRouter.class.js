@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { verifyToken } = require('../utils/jwt.utils');
+const { authToken } = require('../utils/jwt.utils');
 
 class CustomRouter {
     constructor() {
@@ -20,7 +20,7 @@ class CustomRouter {
             if (!httpMethod) {
                 throw new Error(`Invalid HTTP method: ${method}`);
             }
-    
+
             httpMethod.call(
                 this.router,
                 path,
@@ -95,19 +95,18 @@ class CustomRouter {
         return (req, res, next) => {
             if (Array.isArray(policies) && policies.includes('PUBLIC')) return next();
 
-            const authHeaders = req.headers.authorization;
-            if (!authHeaders)
+            const user = req.user;
+
+            if (!user) {
                 return res.status(401).json({ error: 'Not authenticated' });
+            }
 
-            const token = authHeaders.split(' ')[1];
-            const user = verifyToken(token);
-
-            if (!policies.includes(user.role.toUpperCase()))
+            if (!policies.includes(user.role.toUpperCase())) {
                 return res.status(403).json({ error: 'Not authorized' });
+            }
 
-            req.user = user;
             next();
-        }
+        };
     }
 }
 

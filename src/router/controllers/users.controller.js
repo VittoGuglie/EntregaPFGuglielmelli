@@ -1,4 +1,3 @@
-const passport = require('passport');
 const CustomRouter = require('../../classes/CustomRouter.class');
 const UserDTO = require('../../DTOs/users.dto');
 const { createUser, getAll, updateUserRole } = require('../../services/users.services');
@@ -7,11 +6,12 @@ const publicAccess = require('../../middlewares/publicAccess.middleware');
 const privateAccess = require('../../middlewares/privateAccess.middleware');
 const User = require('../../dao/models/Users.model');
 const generateUsers = require('../../utils/mock.utils')
+const { authToken } = require('../../utils/jwt.utils');
 
 class UsersRouter extends CustomRouter {
     init() {
         // Ruta publica accesible para todos:
-        this.get('/', publicAccess, (req, res) => {
+        this.get('/', publicAccess, authToken, (req, res) => {
             const { users } = req.query;
             const userMock = generateUsers(users);
             res.json({ message: userMock });
@@ -32,7 +32,7 @@ class UsersRouter extends CustomRouter {
             }
         );
 
-        this.get('/getUsersForAdmin', privateAccess, authorization(['admin']), async (req, res) => {
+        this.get('/getUsersForAdmin', privateAccess, authToken, authorization(['admin']), async (req, res) => {
             try {
                 const users = await getAll();
                 res.json({ message: users });

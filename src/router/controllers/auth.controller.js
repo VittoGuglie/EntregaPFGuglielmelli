@@ -1,16 +1,15 @@
 const CustomRouter = require('../../classes/CustomRouter.class');
 const { generateToken } = require('../../utils/jwt.utils');
 const Users = require('../../dao/models/Users.model');
-const passport = require('passport');
 
 class AuthRouter extends CustomRouter {
     init() {
-        this.post('/login', ['PUBLIC'], async (req, res) => {
+        this.post('/login', async (req, res) => {
             try {
                 const { email, password } = req.body;
                 console.log(email);
                 console.log(password);
-                
+
                 const user = await Users.findOne({ email });
 
                 if (!user)
@@ -27,11 +26,11 @@ class AuthRouter extends CustomRouter {
 
                 res
                     .cookie('authToken', access_token, {
-                        maxAge: 60*60*1000, 
+                        maxAge: 60 * 60 * 1000,
                         httpOnly: true,
                     }).json({
                         status: 'success',
-                        message: 'Session initialized',
+                        message: 'Session initialized, authToken: ' + access_token,
                     });
             } catch (error) {
                 console.log(error);
