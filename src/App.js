@@ -11,6 +11,9 @@ const bodyParser = require('body-parser');
 const authToken = require('./middlewares/authorization.middleware');
 const authorization = require('./middlewares/authorization.middleware');
 
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./docs/swagger.yaml');
+
 const passport = require('passport');
 const initializePassport = require('./config/passport.config');
 
@@ -47,6 +50,19 @@ app.set('view engine', 'handlebars');
 router(app);
 
 mongoConnect();
+
+// const swaggerOptions = {
+//     definition: {
+//         openapi: '3.0.1',
+//         info: {
+//             title: 'Documentación de la API',
+//             description: 'API para gestionar productos y carritos'
+//         }
+//     },
+//     apis: [`${__dirname}/docs/swagger.yaml`]
+// }
+const specs = swaggerJsdocs(swaggerDocument);
+app.use('/apidocs', swaggerUi.serve, swaggerUi.setuo(specs));
 
 //Endpoint de prueba 
 app.get('/loggerTest', (req, res) => {

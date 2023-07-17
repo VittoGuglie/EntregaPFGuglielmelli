@@ -1,0 +1,155 @@
+swagger: '2.0'
+info:
+  title: Documentación de la API
+  description: API para gestionar productos y carritos
+  version: 1.0.0
+paths:
+  /carts:
+    post:
+      summary: Crear un carrito
+      description: Crea un nuevo carrito.
+      responses:
+        '201':
+          description: Carrito creado exitosamente
+          schema:
+            $ref: '#/definitions/Cart'
+  /carts/{cartId}:
+    get:
+      summary: Obtener un carrito por ID
+      description: Retorna un carrito específico basado en su ID.
+      parameters:
+        - name: cartId
+          in: path
+          description: ID del carrito a obtener
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Carrito obtenido exitosamente
+          schema:
+            $ref: '#/definitions/Cart'
+        '404':
+          description: Carrito no encontrado
+    delete:
+      summary: Eliminar un carrito por ID
+      description: Elimina un carrito específico basado en su ID.
+      parameters:
+        - name: cartId
+          in: path
+          description: ID del carrito a eliminar
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Carrito eliminado exitosamente
+  /carts/{cartId}/items:
+    put:
+      summary: Agregar un ítem al carrito
+      description: Agrega un nuevo ítem a un carrito específico.
+      parameters:
+        - name: cartId
+          in: path
+          description: ID del carrito al que se agregará el ítem
+          required: true
+          type: integer
+        - name: item
+          in: body
+          description: Datos del ítem a agregar
+          required: true
+          schema:
+            $ref: '#/definitions/CartItem'
+      responses:
+        '200':
+          description: Ítem agregado exitosamente
+          schema:
+            $ref: '#/definitions/Cart'
+  /products:
+    get:
+      summary: Obtener todos los productos
+      description: Retorna una lista de todos los productos disponibles.
+      responses:
+        '200':
+          description: Lista de productos obtenida exitosamente
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Product'
+  /products/{productId}:
+    get:
+      summary: Obtener un producto por ID
+      description: Retorna un producto específico basado en su ID.
+      parameters:
+        - name: productId
+          in: path
+          description: ID del producto a obtener
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Producto obtenido exitosamente
+          schema:
+            $ref: '#/definitions/Product'
+        '404':
+          description: Producto no encontrado
+    put:
+      summary: Actualizar un producto por ID
+      description: Actualiza un producto específico basado en su ID.
+      parameters:
+        - name: productId
+          in: path
+          description: ID del producto a actualizar
+          required: true
+          type: integer
+        - name: updatedProduct
+          in: body
+          description: Datos actualizados del producto
+          required: true
+          schema:
+            $ref: '#/definitions/Product'
+      responses:
+        '200':
+          description: Producto actualizado exitosamente
+          schema:
+            $ref: '#/definitions/Product'
+        '404':
+          description: Producto no encontrado
+    delete:
+      summary: Eliminar un producto por ID
+      description: Elimina un producto específico basado en su ID.
+      parameters:
+        - name: productId
+          in: path
+          description: ID del producto a eliminar
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Producto eliminado exitosamente
+definitions:
+  Cart:
+    type: object
+    properties:
+      id:
+        type: integer
+      products:
+        type: array
+        items:
+          $ref: '#/definitions/CartItem'
+  CartItem:
+    type: object
+    properties:
+      product:
+        type: integer
+      quantity:
+        type: integer
+  Product:
+    type: object
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
+      description:
+        type: string
+      price:
+        type: number
