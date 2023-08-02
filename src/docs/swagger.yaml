@@ -4,7 +4,7 @@ info:
   description: 'API generator of products and carts'
   version: '1.0.0'
 paths:
-  /carts:
+  /api/carts/:
     post:
       summary: Crear un carrito
       description: Crea un nuevo carrito.
@@ -13,7 +13,7 @@ paths:
           description: Carrito creado exitosamente
           schema:
             $ref: '#/definitions/Cart'
-  /carts/{cartId}:
+  /api/carts/{cartId}/:
     get:
       summary: Obtener un carrito por ID
       description: Retorna un carrito específico basado en su ID.
@@ -42,7 +42,7 @@ paths:
       responses:
         '200':
           description: Carrito eliminado exitosamente
-  /carts/{cartId}/items:
+  /api/carts/{cartId}/items/:
     put:
       summary: Agregar un ítem al carrito
       description: Agrega un nuevo ítem a un carrito específico.
@@ -63,7 +63,7 @@ paths:
           description: Ítem agregado exitosamente
           schema:
             $ref: '#/definitions/Cart'
-  /products:
+  /api/products/:
     get:
       summary: Obtener todos los productos
       description: Retorna una lista de todos los productos disponibles.
@@ -74,7 +74,7 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Product'
-  /products/{productId}:
+  /api/products/{productId}/:
     get:
       summary: Obtener un producto por ID
       description: Retorna un producto específico basado en su ID.

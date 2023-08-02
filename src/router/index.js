@@ -11,6 +11,7 @@ const mockingproductsController = require('./controllers/mockingproducts.control
 const sessionsRouter = require('./routes/sessions.router');
 const loggerTestController = require('./controllers/logger.controller');
 const passwordRouter = require('./routes/password.router');
+const usersPremiumController = require('./controllers/usersPremium.controller');
 
 const usersRouter = new UsersRouter();
 const authRouter = new AuthRouter();
@@ -29,6 +30,7 @@ const router = app => {
     app.use('/api/sessions', sessionsRouter);
     app.use('/loggerTest', loggerTestController);
     app.use('/reset-password', passwordRouter);
+    app.use('/api/users/premium', usersPremiumController)
     app.use('*', (req, res) => {
         res.status(404).json({ error: 'Ooops Page not found' })
     });

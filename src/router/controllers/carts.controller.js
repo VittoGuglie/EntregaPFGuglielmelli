@@ -1,7 +1,6 @@
 const { Router } = require('express');
 const fs = require('fs');
 const CartDAO = require('../../dao/carts.dao');
-const ProductDAO = require('../../dao/products.dao');
 const { Schema } = require('mongoose');
 const TicketService = require('../../services/tickets.services');
 const { generateUniqueCode, calculateTotalAmount } = require('../../utils/carts.utils');
@@ -11,10 +10,9 @@ const Product = require('../../dao/models/Products.model');
 
 const router = Router();
 
-const CART_FILE = "../../files/carrito.json";
+const CART_FILE = '../../files/carrito.json';
 
 const cartDAO = new CartDAO();
-const productDAO = new ProductDAO();
 
 let carts = [];
 
@@ -69,8 +67,7 @@ router.post("/", async (req, res) => {
     };
 });
 
-
-// Endpoint para generar un carrito desde la carts.dao
+// Endpoint para generar un carrito desde carts.dao
 router.post('/', async (req, res) => {
     try {
         const cart = await cartDAO.createCart(req.body);
@@ -101,13 +98,12 @@ router.put('/:cartId/items', async (req, res) => {
     }
 });
 
-
 // Endpoint para listar los productos de un carrito:
-router.get("/:cid", async (req, res) => {
+router.get('/:cid', async (req, res) => {
     const cid = req.params.cid;
 
     try {
-        const cart = await cartDAO.findCartById(cid).populate("products.product");
+        const cart = await cartDAO.findCartById(cid).populate('products.product');
         res.json(cart.products);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -115,7 +111,7 @@ router.get("/:cid", async (req, res) => {
 });
 
 // Endpoint para agregar un producto al carrito:
-router.post("/:cid/product/:pid", [authorization(['premium'])], async (req, res) => {
+router.post('/:cid/product/:pid', [authorization(['premium'])], async (req, res) => {
     const cid = req.params.cid;
     const pid = req.params.pid;
     const userId = req.user._id;
@@ -257,10 +253,8 @@ router.post("/:cid/purchase", async (req, res) => {
 
     // Devolver la respuesta al cliente
     if (failedProducts.length > 0) {
-        // Si hay productos no procesados, devolver el arreglo de IDs
         res.status(400).json({ failedProducts });
     } else {
-        // Si todos los productos se procesaron correctamente, devolver el ticket
         res.status(200).json({ ticket });
     }
 });
