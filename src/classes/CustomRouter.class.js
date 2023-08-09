@@ -67,6 +67,15 @@ class CustomRouter {
         )
     }
 
+    delete(path, policies, ...callbacks) {
+        this.router.delete(
+            path,
+            this.handlePolicies(policies),
+            this.generateCustomResponses,
+            this.applyCallbacks(callbacks)
+        );
+    }
+    
     applyCallbacks(callbacks) {
         return callbacks.map(callback => async (...params) => {
             try {

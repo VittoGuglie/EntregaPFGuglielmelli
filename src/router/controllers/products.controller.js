@@ -3,6 +3,7 @@ const uploader = require('../../utils/multer.utils');
 const ProductsDao = require('../../dao/products.dao');
 const authorization = require('../../middlewares/authorization.middleware');
 const Product = require('../../dao/models/Products.model');
+const transporter = require('../../utils/mail.utils');
 
 const router = Router();
 
@@ -205,6 +206,42 @@ router.delete('/:pid', async (req, res) => {
     }
 });
 
+router.delete('/:productId', [authorization(['premium', 'admin'])], async (req, res) => {
+    const productId = req.params.productId;
+    const userId = req.user._id;
+
+    try {
+        const product = await Product.findById(productId);
+
+        if (!product) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+
+        if (req.user.role === 'premium') {
+            if (product.owner.toString() !== userId.toString()) {
+                return res.status(403).json({ error: 'No tienes permiso para eliminar este producto' });
+            }
+        } else if (req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'No tienes permiso para eliminar productos' });
+        }
+
+        if (req.user.role === 'premium' && product.owner.toString() === userId.toString()) {
+            await transporter.sendMail({
+                from: 'vitgug2001@example.com',
+                to: req.user.email,
+                subject: 'Producto eliminado',
+                text: `El producto "${product.title}" ha sido eliminado de tu cuenta premium.`
+            });
+        }
+
+        await Product.findByIdAndDelete(productId);
+
+        res.json({ message: 'Producto eliminado exitosamente' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
 // Eliminar productos con mongoDB
 router.delete('/deleteAll', async (req, res) => {
     await Products.deleteAll();

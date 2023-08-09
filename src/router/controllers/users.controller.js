@@ -8,8 +8,44 @@ const User = require('../../dao/models/Users.model');
 const generateUsers = require('../../utils/mock.utils')
 const { authToken } = require('../../utils/jwt.utils');
 const multer = require('multer');
+const cron = require('node-cron');
+const transporter = require('../../utils/mail.utils');
 
 class UsersRouter extends CustomRouter {
+    constructor() {
+        super();
+        // Ejecutar la limpieza de usuarios inactivos cada día a la medianoche
+        cron.schedule('0 0 * * *', async () => {
+            try {
+                await deleteInactiveUsers();
+                console.log('Usuarios inactivos eliminados y correos enviados.');
+            } catch (error) {
+                console.error('Error al eliminar usuarios inactivos:', error);
+            }
+        });
+    }
+    async deleteInactiveUsers() {
+        try {
+            const currentTime = new Date();
+            const inactiveUsers = await User.find({
+                lastConnection: { $lt: new Date(currentTime - (2 * 24 * 60 * 60 * 1000)) } // Últimos 2 días
+            });
+
+            for (const user of inactiveUsers) {
+                await user.remove();
+
+                await transporter.sendMail({
+                    from: 'vitgug2001@gmail.com',
+                    to: user.email,
+                    subject: 'Eliminación de cuenta por inactividad',
+                    text: 'Su cuenta ha sido eliminada debido a la inactividad en los últimos 2 días.'
+                });
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+
     init() {
         const storage = multer.diskStorage({
             destination: (req, file, cb) => {
@@ -32,6 +68,16 @@ class UsersRouter extends CustomRouter {
             const { users } = req.query;
             const userMock = generateUsers(users);
             res.json({ message: userMock });
+        });
+
+        this.get('/admin-users', privateAccess, authToken, authorization(['admin']), async (req, res) => {
+            try {
+                const users = await getAll();
+                res.render('admin-users', { users }); // Renderizar la vista y pasar los datos de los usuarios
+            } catch (error) {
+                console.log(error);
+                res.status(500).json({ status: 'error', message: 'Error al obtener usuarios.' });
+            }
         });
 
         this.post(
@@ -61,9 +107,9 @@ class UsersRouter extends CustomRouter {
 
         this.post(
             '/:uid/documents',
-            ['PRIVATE'], 
-            authToken, 
-            upload.array('documents'), 
+            ['PRIVATE'],
+            authToken,
+            upload.array('documents'),
             async (req, res) => {
                 try {
                     const uid = req.params.uid;
@@ -89,6 +135,17 @@ class UsersRouter extends CustomRouter {
                 }
             }
         );
+
+        // Nueva ruta para eliminar usuarios inactivos manualmente
+        this.delete('/deleteInactive', privateAccess, authToken, authorization(['admin']), async (req, res) => {
+            try {
+                await deleteInactiveUsers();
+                res.json({ message: 'Usuarios inactivos eliminados y correos enviados.' });
+            } catch (error) {
+                console.log(error);
+                res.status(500).json({ status: 'error', message: 'Error al eliminar usuarios inactivos.' });
+            }
+        });
     }
 }
 

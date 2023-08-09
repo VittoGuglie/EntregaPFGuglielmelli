@@ -15,7 +15,6 @@ const swaggerDocument = require('./docs/swagger.yaml');
 const passport = require('passport');
 const initializePassport = require('./config/passport.config');
 
-const { dbAdmin, dbPassword, dbHost } = require('../src/config/db.config');
 const { secret_key } = require('./config/app.config');
 
 const app = express();

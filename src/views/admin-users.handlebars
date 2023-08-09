@@ -1,0 +1,31 @@
+<h1>Administración de Usuarios</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each users}}
+        <tr>
+            <td>{{nombre}}</td>
+            <td>{{correo}}</td>
+            <td>
+                <select name="rol" id="rol-{{_id}}">
+                    <option value="user" {{#ifCond role "===" "user" }}selected{{/ifCond}}>Usuario</option>
+                    <option value="admin" {{#ifCond role "===" "admin" }}selected{{/ifCond}}>Administrador</option>
+                </select>
+            </td>
+            <td>
+                <button onclick="updateRole('{{_id}}')">Actualizar Rol</button>
+                <button onclick="deleteUser('{{_id}}')">Eliminar</button>
+            </td>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
+
+<script src="/js/admin-users.js"></script>
