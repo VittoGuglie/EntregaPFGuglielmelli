@@ -4,7 +4,7 @@
     "description": "Proyecto generado para cumplir con los requisitos de los desafios entregables que darán lugar a la entrega de un Proyecto Final para la institución educativa Coderhouse",
     "main": "App.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "mocha src/test/*.test.js"
     },
     "author": "Vittorio Guglielmelli",
     "license": "MIT",
