@@ -8,7 +8,7 @@ Este proyecto consiste en la creación de una API para un sitio de comercio elec
 * Profesionalizando la base de datos del proyecto
 ## Tercera entrega
 * Mejorando la aquitectura del servidor
-## Ultima entrega
+## Última entrega
 * Profundizar de conceptos estrechamente relacionados con entregas pasadas.
 ### Definición
 Construccion de una aplicacion para un proyecto final ecommerce.
